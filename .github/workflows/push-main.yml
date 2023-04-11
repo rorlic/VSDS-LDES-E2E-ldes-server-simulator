@@ -1,4 +1,4 @@
-name: Create and publish LDES Server Simulator Docker image
+name: 2. Create and publish LDES Server Simulator Docker image
 
 on:
   push:
