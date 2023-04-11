@@ -121,7 +121,7 @@ describe('controller tests', () => {
             const fragment = sut.getFragment({query: {id: partialWithQueryId}}, controllerBaseUrl);
             expect(fragment.body).toBeUndefined();
             expect(fragment.status).toEqual(302);
-            expect(fragment.headers?.['location']).toBe(body['@id']);
+            expect(fragment.headers?.['Location']).toBe(body['@id']);
         });
         it('should retrieve fragments by alias, even recursively', () => {
             sut.postFragment({body: body, headers: headers});
@@ -136,7 +136,7 @@ describe('controller tests', () => {
             const fragment = sut.getFragment({query: {id: firstMemberId}}, controllerBaseUrl);
             expect(fragment.body).toBeUndefined();
             expect(fragment.status).toEqual(302);
-            expect(fragment.headers?.['location']).toBe(body['@id']);
+            expect(fragment.headers?.['Location']).toBe(body['@id']);
         });
     });
 
