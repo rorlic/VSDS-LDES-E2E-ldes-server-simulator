@@ -10,7 +10,7 @@ RUN npm ci
 RUN npm run build
 
 # run environment
-FROM node:18.12.1-bullseye-slim
+FROM node:18.16.0-bullseye-slim
 # fix vulnerabilities
 # note: trivy insists this to be on the same RUN line
 RUN apt-get -y update && apt-get -y upgrade
