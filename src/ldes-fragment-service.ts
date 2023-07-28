@@ -1,7 +1,8 @@
-import { TreeNode } from "./tree-specification";
+import { JsonObject, TreeRelation } from "./tree-specification";
 import { IFragment, LdesFragmentRepository } from "./ldes-fragment-repository";
-import { IFragmentInfo } from "fragment-interfaces";
-import { IHeaders } from "http-interfaces";
+import { IFragmentInfo } from "./fragment-interfaces";
+import { IHeaders, mimeJsonLd } from "./http-interfaces";
+import { fetch } from 'undici';
 
 export interface ICreateFragmentOptions { 
     'max-age': number;
@@ -10,7 +11,39 @@ export interface ICreateFragmentOptions {
 export class LdesFragmentService {
     constructor(private baseUrl: URL, private repository: LdesFragmentRepository) { }
 
-    public save(node: TreeNode, options?: ICreateFragmentOptions | undefined, headers?: IHeaders | undefined): IFragmentInfo {
+    private async cacheRemoteContext(url: string) {
+        const localId = this.changeOrigin(new URL(url), this.baseUrl).href;
+        const id = localId.replace(this.baseUrl.href, '/');
+
+        if (!this.repository.get(id)) {
+            const response = await fetch(url, {headers: {accept: mimeJsonLd}});
+            if (response.status !== 200) return undefined;
+    
+            const body = (await response.json()) as JsonObject;
+            this.repository.save(id, body, {'content-type': mimeJsonLd})
+        }
+
+        return localId;
+    }
+
+    private async handleContexts(node: JsonObject) {
+        const context = node["@context"];
+
+        if (typeof context === 'string') {
+            const localId = await this.cacheRemoteContext(context);
+            node["@context"] = localId || context;
+        } else if (Array.isArray(context)) {
+            const contexts = context as (string | JsonObject)[];
+            node["@context"] = await Promise.all(contexts.map(async value => typeof value === 'string' 
+                ? (await this.cacheRemoteContext(value)) || value 
+                : value
+            ));
+        }
+    }
+
+    public async save(node: JsonObject, options?: ICreateFragmentOptions | undefined, headers?: IHeaders | undefined): Promise<IFragmentInfo> {
+        await this.handleContexts(node);
+
         const fragmentUrl: URL = this.changeOrigins(node);
         const id = fragmentUrl.href.replace(this.baseUrl.href, '/');
         headers = this.addCacheControlHeader(options, headers);
@@ -31,10 +64,11 @@ export class LdesFragmentService {
         return url;
     }
 
-    private changeOrigins(node: TreeNode) {
+    private changeOrigins(node: JsonObject) {
         const fragmentUrl: URL = this.changeOrigin(new URL(node['@id']), this.baseUrl);
         node['@id'] = fragmentUrl.href;
-        node['tree:relation'].forEach(x => x['tree:node'] = this.changeOrigin(new URL(x['tree:node']), this.baseUrl).href);
+        node['tree:relation']?.forEach((x: TreeRelation) => 
+            x['tree:node'] = this.changeOrigin(new URL(x['tree:node']), this.baseUrl).href);
         return fragmentUrl;
     }
 

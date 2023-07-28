@@ -3,11 +3,11 @@ import minimist from 'minimist'
 import { LdesFragmentRepository } from './ldes-fragment-repository';
 import { ICreateFragmentOptions, LdesFragmentService } from './ldes-fragment-service';
 import { LdesFragmentController } from "./ldes-fragment-controller";
-import { TreeNode } from './tree-specification';
-import { IResponse } from './http-interfaces';
+import { IResponse, mimeJsonLd } from './http-interfaces';
 import { RouteGenericInterface } from 'fastify/types/route';
 import { Server, IncomingMessage, ServerResponse } from 'http';
 import { IAlias } from './fragment-interfaces';
+import { JsonObject } from 'tree-specification';
 
 const args = minimist(process.argv.slice(2));
 const silent: boolean = args['silent'] !== undefined;
@@ -59,11 +59,11 @@ server.get('/*', async (request, reply) => {
   respondWith(reply, controller.getFragment({ query: {id: request.url }}, baseUrl));
 });
 
-server.addContentTypeParser('application/ld+json', {parseAs: "string"}, server.getDefaultJsonParser('ignore', 'ignore'));
+server.addContentTypeParser(mimeJsonLd, {parseAs: "string"}, server.getDefaultJsonParser('ignore', 'ignore'));
 
 server.post('/ldes', {schema: {querystring: {seconds: {type:'number'}}}}, async (request, reply) => {
-  respondWith(reply, controller.postFragment({
-    body: request.body as TreeNode, 
+  respondWith(reply, await controller.postFragment({
+    body: request.body as JsonObject, 
     query: request.query as ICreateFragmentOptions,
     headers: {'content-type': request.headers['content-type']}
   }));

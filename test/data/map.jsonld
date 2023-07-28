@@ -1,0 +1,96 @@
+{
+    "@context": [
+        "https://geojson.org/geojson-ld/geojson-context.jsonld",
+        "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld",
+        "https://schema.org/dummy.jsonld"
+    ],
+    "@id": "http://www.example.org/id/map",
+    "features": [
+        {
+            "geometry": {
+                "coordinates": [
+                    4.40123,
+                    51.225348
+                ],
+                "type": "Point"
+            },
+            "properties": {
+                "last_updated": "2023-06-07T18:15:40.477870Z",
+                "sn": "S000212960114118249000218",
+                "type": "sensor"
+            },
+            "type": "Feature"
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    4.40123,
+                    51.225348
+                ],
+                "type": "Point"
+            },
+            "properties": {
+                "env": "beacon",
+                "installation_time": "2023-06-07T18:15:40.478507Z",
+                "last_updated": "2023-06-07T18:15:40.477870Z",
+                "sn": "S000212960114118249000218",
+                "type": "gateway"
+            },
+            "type": "Feature"
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    [
+                        [
+                            4.400775,
+                            51.225443
+                        ],
+                        [
+                            4.400879,
+                            51.22534
+                        ],
+                        [
+                            4.400914,
+                            51.225314
+                        ],
+                        [
+                            4.400953,
+                            51.225313
+                        ],
+                        [
+                            4.400995,
+                            51.225335
+                        ],
+                        [
+                            4.401037,
+                            51.225357
+                        ],
+                        [
+                            4.401081,
+                            51.225404
+                        ],
+                        [
+                            4.401045,
+                            51.22543
+                        ],
+                        [
+                            4.401016,
+                            51.225505
+                        ],
+                        [
+                            4.400775,
+                            51.225443
+                        ]
+                    ]
+                ],
+                "type": "Polygon"
+            },
+            "properties": {
+                "region": 1
+            },
+            "type": "Feature"
+        }
+    ],
+    "type": "FeatureCollection"
+}
