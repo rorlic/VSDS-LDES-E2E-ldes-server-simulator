@@ -1,6 +1,6 @@
 {
     "@context": [
-        "http://schema.org/", 
+        "https://schema.org/person.context.jsonld", 
 		{
             "ldes": "https://w3id.org/ldes#",
             "tree": "https://w3id.org/tree#",

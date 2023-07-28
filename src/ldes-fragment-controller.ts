@@ -1,5 +1,5 @@
 import { ICreateFragmentOptions, LdesFragmentService } from "./ldes-fragment-service";
-import { TreeNode } from "./tree-specification";
+import { JsonObject } from "./tree-specification";
 import { readdir, readFile } from 'node:fs/promises';
 import { IGetRequest, IPostRequest, IResponse, mimeJsonLd } from "./http-interfaces";
 import { IAlias, IDeleteAll, IFragmentId, IFragmentInfo, IRedirection, IStatistics, IStatisticsResponses } from "./fragment-interfaces";
@@ -23,10 +23,11 @@ export class LdesFragmentController {
      * @param request The request with its body containing the fragment which optionally contains relations to other fragments.
      * @returns An IFragmentInfo object with its ID property containing the relative fragment path without the origin.
      */
-    public postFragment(request: IPostRequest<TreeNode, ICreateFragmentOptions>): IResponse<IFragmentInfo> {
+    public async postFragment(request: IPostRequest<JsonObject, ICreateFragmentOptions>): Promise<IResponse<IFragmentInfo>> {
+        const response = await this.service.save(request.body, request.query, request.headers)
         return {
-            status: 201, 
-            body: this.service.save(request.body, request.query, request.headers),
+            status: response.id ? 201 : 400, 
+            body: response,
         };
     }
 
@@ -35,8 +36,8 @@ export class LdesFragmentController {
      * @param request A get request with the query containing the ID of the fragment to retrieve.
      * @returns The fragment or undefined.
      */
-    public getFragment(request: IGetRequest<IFragmentId>, baseUrl: URL): IResponse<TreeNode | undefined> {
-        let fragmentId = request.query.id;
+    public getFragment(request: IGetRequest<IFragmentId>, baseUrl: URL): IResponse<JsonObject | undefined> {
+        const fragmentId = request.query.id;
         let redirection = this._redirections[fragmentId];
         if (redirection) {
             while (this._redirections[redirection]) {
@@ -110,7 +111,7 @@ export class LdesFragmentController {
         const files: string[] = await readdir(directoryPath);
         for await (const file of files.filter(x => x.endsWith('.jsonld'))) {
             const content = await readFile(`${directoryPath}/${file}`, { encoding: 'utf-8' });
-            const fragment = this.service.save(JSON.parse(content), undefined, {'content-type': mimeJsonLd});
+            const fragment = await this.service.save(JSON.parse(content), undefined, {'content-type': mimeJsonLd});
             result.push({ file: file, fragment: fragment });
         }
         return result;

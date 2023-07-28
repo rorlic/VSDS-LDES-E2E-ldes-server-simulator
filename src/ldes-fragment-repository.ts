@@ -1,8 +1,8 @@
+import { JsonObject } from "tree-specification";
 import { IHeaders } from "./http-interfaces";
-import { TreeNode } from "./tree-specification";
 
 export interface IFragment {
-    content: TreeNode;
+    content: JsonObject;
     headers: IHeaders;
 }
 
@@ -13,7 +13,7 @@ interface LdesFragmentsDatabase {
 export class LdesFragmentRepository {
     private _fragments: LdesFragmentsDatabase = {};
 
-    public save(id: string, node: TreeNode, headers: IHeaders) {
+    public save(id: string, node: JsonObject, headers: IHeaders) {
         this._fragments[id] = {content: node, headers: headers};
     }
 
