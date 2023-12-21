@@ -61,6 +61,7 @@ server.get('/*', async (request, reply) => {
   const result = await controller.getFragment({ query: { id: request.url } }, baseUrl);
   if (result.status === 302) { // redirect
     respondWith(reply, result);
+    return;
   }
 
   const accepts = (request as any).accepts();
@@ -80,13 +81,13 @@ server.get('/*', async (request, reply) => {
   respondWith(reply, response);
 });
 
-server.addContentTypeParser(mimeJsonLd, { parseAs: 'string' }, async (_, body: string, done) => {
+server.addContentTypeParser(mimeJsonLd, { parseAs: 'string' }, async (_:any, body: string) => {
   try {
     const quads = await controller.parseJsonLd(body);
-    done(null, quads);
+    return quads;
   } catch (err: any) {
     err.statusCode = 400;
-    done(err, undefined);
+    throw err;
   }
 })
 

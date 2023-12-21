@@ -15,12 +15,18 @@ export class LdesFragmentService {
         const store = new Store(quads);
         const fragmentId = this.fixUris(store);
         const id = fragmentId?.replace(this.baseUrl.href, '/');
-        if (!id) return { id: ''};
 
-        headers = this.addCacheControlHeader(options, headers);
-        quads = store.getQuads(null,null,null,null);
-        this.repository.save(id, quads, headers);
-        return {...headers, id: id};
+        let result;        
+        if (!id) {
+            result = { id: '' };
+        } else {
+            headers = this.addCacheControlHeader(options, headers);
+            quads = store.getQuads(null,null,null,null);
+            this.repository.save(id, quads, headers);
+            result = {...headers, id: id};
+        }
+
+        return result;
     }
 
 
@@ -53,7 +59,6 @@ export class LdesFragmentService {
         if (!nodeId) { // search for a view instead
             nodeId = store.getObjects(null, this.treeView, null).shift()?.value;
         }
-
         if (!nodeId) return undefined;
 
         const uris = [nodeId];
@@ -76,8 +81,8 @@ export class LdesFragmentService {
             this.replaceQuads(store, oldObjects, newObjects);
         });
 
-        const fragmentUrl = this.changeOrigin(new URL(nodeId), this.baseUrl);
-        return fragmentUrl.href;
+        const fragmentId = this.changeOrigin(new URL(nodeId), this.baseUrl).href;
+        return fragmentId;
     }
 		
     public get(fragmentId: string): IFragment | undefined {

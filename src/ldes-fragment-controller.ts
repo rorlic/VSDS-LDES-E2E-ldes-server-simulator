@@ -30,9 +30,8 @@ export class LdesFragmentController {
      */
     public async parseJsonLd(content: string): Promise<RDF.Quad[]> {
         const store = new Store();
-        const parser = new JsonLdParser({skipContextValidation: true});
-        parser.write(content);
-        parser.end();
+        const parser = new JsonLdParser();
+        parser.end(content);
         await promisifyEventEmitter(store.import(parser));
         const quads = store.getQuads(null, null, null, null);
         return quads;
@@ -70,10 +69,11 @@ export class LdesFragmentController {
      */
     public async postFragment(request: IPostRequest<RDF.Quad[], ICreateFragmentOptions>): Promise<IResponse<IFragmentInfo>> {
         const response = await this.service.save(request.body, request.query, request.headers)
-        return {
+        const result = {
             status: response.id ? 201 : 400,
             body: response,
         };
+        return result;
     }
 
     /**
