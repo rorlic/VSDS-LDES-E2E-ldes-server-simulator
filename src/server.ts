@@ -59,6 +59,10 @@ server.get('/', async (_request, reply) => {
 server.get('/*', async (request, reply) => {
   const baseUrl = new URL(`${request.protocol}://${request.hostname}`);
   const result = await controller.getFragment({ query: { id: request.url } }, baseUrl);
+  if (result.status === 302) { // redirect
+    respondWith(reply, result);
+  }
+
   const accepts = (request as any).accepts();
   const contentType = accepts.type([mimeTurtle, mimeTriples, mimeQuads, mimeJsonLd]) || undefined;
   const body = result.body && contentType
