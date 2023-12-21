@@ -1,7 +1,7 @@
 # build environment
-FROM node:18-bullseye-slim AS builder
+FROM node:21-bullseye-slim AS builder
 # fix vulnerabilities
-ARG NPM_TAG=9.6.4
+ARG NPM_TAG=9.9.2
 RUN npm install -g npm@${NPM_TAG}
 # build it
 WORKDIR /build
@@ -10,13 +10,14 @@ RUN npm ci
 RUN npm run build
 
 # run environment
-FROM node:18.16.0-bullseye-slim
+FROM node:21.5.0-bullseye-slim
 # fix vulnerabilities
 # note: trivy insists this to be on the same RUN line
 RUN apt-get -y update && apt-get -y upgrade
 RUN apt-get -y install apt-utils
 WORKDIR /usr/vsds/simulator
 # fix vulnerabilities
+ARG NPM_TAG=9.9.2
 RUN npm install -g npm@${NPM_TAG}
 ## setup to run as less-privileged user
 COPY --chown=node:node --from=builder /build/package*.json ./

@@ -19,3 +19,6 @@ export interface IPostRequest<TBody, TQuery = void> {
 }
 
 export const mimeJsonLd = 'application/ld+json';
+export const mimeTurtle = 'text/turtle';
+export const mimeTriples = 'application/n-triples';
+export const mimeQuads = 'application/n-quads';

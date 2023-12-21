@@ -102,11 +102,11 @@ Although it does not matter with which fragment you start retrieving a LDES data
 ```
 To create an alias for a fragment from the (Bash) command line using curl:
 ```bash
-curl -X POST http://localhost:8080/alias -H "Content-Type: application/json" -d '{"original": "https://private-api.gipod.beta-vlaanderen.be/api/v1/ldes/mobility-hindrances", "alias": "https://private-api.gipod.beta-vlaanderen.be/ldes/mobility-hindrances"}'
+curl -X POST http://localhost:8080/alias -H "Content-Type: application/json" -d '{"original": "https://private-api.gipod.beta-vlaanderen.be/api/v1/ldes/mobility-hindrances/view", "alias": "https://private-api.gipod.beta-vlaanderen.be/ldes/mobility-hindrances"}'
 ```
 and the simulator will respond with:
 ```json
-{"from":"/ldes/mobility-hindrances","to":"/api/v1/ldes/mobility-hindrances"}
+{"from":"/ldes/mobility-hindrances","to":"/api/v1/ldes/mobility-hindrances/view"}
 ```
 
 When requesting a fragment by alias:
@@ -143,10 +143,15 @@ Date: Wed, 23 Nov 2022 12:56:27 GMT
 Connection: keep-alive
 Keep-Alive: timeout=5
 
-{
-  "@context":["https://private-api.gipod.beta-vlaanderen.be/api/v1/context/gipod.jsonld"]
-  ... (omitted the response remainder)
-}
+[
+  ... (omitted many objects) ...
+	{
+		"@id":"http://localhost:8080/api/v1/ldes/mobility-hindrances/view",
+		"@type":[
+			"https://w3id.org/tree#Node"
+		]
+	}
+]
 ```
 
 ### `GET /<path>` -- Retrieve a Fragment
@@ -159,55 +164,42 @@ curl http://localhost:8080
 ```
 now results in:
 ```json
-{"aliases":["/ldes/mobility-hindrances"],"fragments":["/api/v1/ldes/mobility-hindrances"],"responses":{}}
+{"aliases":["/ldes/mobility-hindrances"],"fragments":["/api/v1/ldes/mobility-hindrances/view"],"responses":{}}
 ```
 
 To retrieve a fragment directly with curl:
 ```bash
-curl http://localhost:8080/api/v1/ldes/mobility-hindrances
+curl http://localhost:8080/api/v1/ldes/mobility-hindrances/view
 ```
 results in (formatted):
 
 ```json
-{
-  "@context": [
-    "https://private-api.gipod.beta-vlaanderen.be/api/v1/context/gipod.jsonld"
-  ],
-  "@id": "http://localhost:8080/api/v1/ldes/mobility-hindrances",
-  "@type": "Node",
-  "viewOf": "https://private-api.gipod.beta-vlaanderen.be/api/v1/ldes/mobility-hindrances",
-  "collectionInfo": {
-    "@id": "https://private-api.gipod.beta-vlaanderen.be/api/v1/ldes/mobility-hindrances",
-    "@type": "EventStream",
-    "shape": "https://private-api.gipod.beta-vlaanderen.be/api/v1/ldes/mobility-hindrances/shape",
-    "timestampPath": "prov:generatedAtTime",
-    "versionOfPath": "dct:isVersionOf"
-  },
-  "tree:relation": [],
-  "items": [
-      ... (omitted LDES members)
-  ]
-}
+[
+  ... (omitted many objects) ...
+	{
+		"@id":"http://localhost:8080/api/v1/ldes/mobility-hindrances/view",
+		"@type":[
+			"https://w3id.org/tree#Node"
+		]
+	}
+]
 ```
+
 **Note**: that the fragment ID (and, if available, the relation link) refers to the simulator instead of the original LDES server.
 
 To verify that the correct `Cache-Control` header is returned you need to use `curl -i`, e.g.:
 ```bash
-curl -i http://localhost:8080/api/v1/ldes/mobility-hindrances
+curl -I http://localhost:8080/api/v1/ldes/mobility-hindrances/view
 ```
 results in:
 ```http
 HTTP/1.1 200 OK
+content-type: application/ld+json; charset=utf-8
 cache-control: public, max-age=120
-content-type: application/json; charset=utf-8
-content-length: 2571
-Date: Thu, 02 Jun 2022 13:56:19 GMT
+content-length: 5834
+Date: Thu, 21 Dec 2023 13:09:31 GMT
 Connection: keep-alive
-Keep-Alive: timeout=5
-
-{
-  ... (omitted LDES content)
-}
+Keep-Alive: timeout=72
 ```
 
 Requesting the simulator home page using curl:
@@ -218,9 +210,9 @@ now results in something similar to:
 ```json
 {
   "aliases":["/ldes/mobility-hindrances"],
-  "fragments":["/api/v1/ldes/mobility-hindrances"],
+  "fragments":["/api/v1/ldes/mobility-hindrances/view"],
   "responses":{
-    "/api/v1/ldes/mobility-hindrances": {
+    "/api/v1/ldes/mobility-hindrances/view": {
       "count":2,
       "at":[
         "2022-07-27T18:01:28.133Z",
@@ -259,7 +251,7 @@ You can also pass the following arguments when running the container:
 
 E.g.:
 ```bash
-docker run -e SEED=/tmp/gipod-data -v "$(pwd)"/data/gipod:/tmp/gipod-data:ro -e BASEURL=http://localhost:9000 -d -p 9000:80 vsds/ldes-server-simulator
+docker run -e SEED=/tmp/data -v "$(pwd)"/test/data:/tmp/data:ro -e BASEURL=http://localhost:9000 -d -p 9000:80 vsds/ldes-server-simulator
 ```
 
 **Note** that

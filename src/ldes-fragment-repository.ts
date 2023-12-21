@@ -1,8 +1,8 @@
-import { JsonObject } from "tree-specification";
+import * as RDF from "@rdfjs/types";
 import { IHeaders } from "./http-interfaces";
 
 export interface IFragment {
-    content: JsonObject;
+    content: RDF.Quad[];
     headers: IHeaders;
 }
 
@@ -13,7 +13,7 @@ interface LdesFragmentsDatabase {
 export class LdesFragmentRepository {
     private _fragments: LdesFragmentsDatabase = {};
 
-    public save(id: string, node: JsonObject, headers: IHeaders) {
+    public save(id: string, node: RDF.Quad[], headers: IHeaders) {
         this._fragments[id] = {content: node, headers: headers};
     }
 
