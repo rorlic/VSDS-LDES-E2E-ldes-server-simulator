@@ -1,6 +1,5 @@
 .github
 coverage
-data
 dist
 node_modules
 README.md

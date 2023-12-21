@@ -31,3 +31,10 @@ export interface IDeleteAll {
     aliasCount: number;
     fragmentCount: number;
 }
+
+export const nsRdf = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+export const nsRdfs = 'http://www.w3.org/2000/01/rdf-schema#';
+export const nsXmlSchema = 'http://www.w3.org/2001/XMLSchema#';
+export const nsDcTerms = 'http://purl.org/dc/terms/';
+export const nsTree = 'https://w3id.org/tree#';
+export const nsLdes = 'https://w3id.org/ldes#';

@@ -1,8 +1,13 @@
 {
     "@context": [
+        {
+            "@context": {
+                "@base": "https://private-api.gipod.beta-vlaanderen.be/"
+            }
+        },
         "https://private-api.gipod.beta-vlaanderen.be/api/v1/context/gipod.jsonld"
     ],
-    "@id": "https://private-api.gipod.beta-vlaanderen.be/api/v1/ldes/mobility-hindrances",
+    "@id": "https://private-api.gipod.beta-vlaanderen.be/api/v1/ldes/mobility-hindrances/view",
     "@type": "Node",
     "viewOf": "https://private-api.gipod.beta-vlaanderen.be/api/v1/ldes/mobility-hindrances",
     "collectionInfo": {
