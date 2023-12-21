@@ -61,7 +61,7 @@ server.get('/*', async (request, reply) => {
   const result = await controller.getFragment({ query: { id: request.url } }, baseUrl);
   const accepts = (request as any).accepts();
   const contentType = accepts.type([mimeTurtle, mimeTriples, mimeQuads, mimeJsonLd]) || undefined;
-  const body = result.body 
+  const body = result.body && contentType
     ? (contentType === mimeJsonLd 
       ? await controller.writeJsonLd(result.body) 
       : await controller.writeN3(result.body, contentType)) 
@@ -69,7 +69,7 @@ server.get('/*', async (request, reply) => {
 
   const response = {
     body: body,
-    status: result.status,
+    status: !body? 400 : result.status,
     headers: !body ? {} : { ...result.headers, 'content-type': contentType },
   } as IResponse<string>
 
