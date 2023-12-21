@@ -1,8 +1,8 @@
 import * as RDF from "@rdfjs/types";
 import { IFragment, LdesFragmentRepository } from "./ldes-fragment-repository";
-import { IFragmentInfo, nsRdf, nsTree } from "./fragment-interfaces";
+import { IFragmentInfo, nsLdes, nsRdf, nsTree } from "./fragment-interfaces";
 import { IHeaders } from "./http-interfaces";
-import { Store, NamedNode, Quad } from 'n3';
+import { Store, DataFactory } from 'n3';
 
 export interface ICreateFragmentOptions { 
     'max-age': number;
@@ -13,8 +13,8 @@ export class LdesFragmentService {
 
     public async save(quads: RDF.Quad[], options?: ICreateFragmentOptions | undefined, headers?: IHeaders | undefined): Promise<IFragmentInfo> {
         const store = new Store(quads);
-        const fragmentUrl = this.changeOrigins(store);
-        const id = fragmentUrl?.href.replace(this.baseUrl.href, '/');
+        const fragmentId = this.fixUris(store);
+        const id = fragmentId?.replace(this.baseUrl.href, '/');
         if (!id) return { id: ''};
 
         headers = this.addCacheControlHeader(options, headers);
@@ -33,37 +33,51 @@ export class LdesFragmentService {
     private changeOrigin(url: URL, origin: URL): URL {
         url.protocol = origin.protocol;
         url.host = origin.host;
+        url.port = origin.port;
         return url;
     }
 
     private rdfType = nsRdf + 'type';
+    private ldesEventStreamType = nsLdes + 'EventStream';
+    private treeView = nsTree + 'view';
     private treeNodeType = nsTree + 'Node';
     private treeNode = nsTree + 'node';
-    private treeRelation = nsTree + 'relation';
 
-    private replaceEntity(store: Store, oldQuads: RDF.Quad[], newQuads: RDF.Quad[]) {
+    private replaceQuads(store: Store, oldQuads: RDF.Quad[], newQuads: RDF.Quad[]) {
         store.removeQuads(oldQuads);
         store.addQuads(newQuads);
     }
 
-    private changeOrigins(store: Store) {
-        const nodeId = store.getSubjects(this.rdfType, this.treeNodeType, null).shift()?.value;
+    private fixUris(store: Store) {
+        let nodeId = store.getSubjects(this.rdfType, this.treeNodeType, null).shift()?.value;
+        if (!nodeId) { // search for a view instead
+            nodeId = store.getObjects(null, this.treeView, null).shift()?.value;
+        }
+
         if (!nodeId) return undefined;
 
+        const uris = [nodeId];
+
+        const ldesId = store.getSubjects(this.rdfType, this.ldesEventStreamType, null).shift()?.value;
+        if (ldesId) uris.push(ldesId);
+
+        const relationLinks = store.getObjects(null, this.treeNode, null);
+        relationLinks.forEach(x => uris.push(x.value));
+
+        uris.forEach(uri => {
+            const id = DataFactory.namedNode(this.changeOrigin(new URL(uri), this.baseUrl).href)
+            
+            const oldSubjects = store.getQuads(uri, null, null, null);
+            const newSubjects = oldSubjects.map(x => DataFactory.quad(id, x.predicate, x.object, x.graph));
+            this.replaceQuads(store, oldSubjects, newSubjects);
+
+            const oldObjects = store.getQuads(null, null, uri, null);
+            const newObjects = oldObjects.map(x => DataFactory.quad(x.subject, x.predicate, id, x.graph));
+            this.replaceQuads(store, oldObjects, newObjects);
+        });
+
         const fragmentUrl = this.changeOrigin(new URL(nodeId), this.baseUrl);
-        const newSubjectId = new NamedNode(fragmentUrl.href);
-
-        const oldNode = store.getQuads(nodeId, null, null, null);
-        const relationIds = store.getObjects(nodeId, this.treeRelation, null);
-        const oldRelationLinks = relationIds.flatMap(x => store.getQuads(x, this.treeNode, null, null));
-
-        const newNode = oldNode.map(x => new Quad(newSubjectId, x.predicate, x.object, x.graph));
-        this.replaceEntity(store, oldNode, newNode);
-
-        const newRelationLinks = oldRelationLinks.map(x => new Quad(x.subject, x.predicate, new NamedNode(this.changeOrigin(new URL(x.object.value), this.baseUrl).href)));
-        this.replaceEntity(store, oldRelationLinks, newRelationLinks);
-
-        return fragmentUrl;
+        return fragmentUrl.href;
     }
 		
     public get(fragmentId: string): IFragment | undefined {
