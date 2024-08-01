@@ -22,10 +22,12 @@ RUN npm install -g npm@${NPM_TAG}
 ## setup to run as less-privileged user
 COPY --chown=node:node --from=builder /build/package*.json ./
 COPY --chown=node:node --from=builder /build/dist ./
-ENV NODE_ENV production
+ENV NODE_ENV=production
 RUN npm ci --omit=dev
 ## install signal-handler wrapper
 RUN apt-get -y install dumb-init
+## install curl (for checking health)
+RUN apt-get -y install curl
 ## allow passing variables
 ARG SEED=
 ENV SEED=${SEED}
