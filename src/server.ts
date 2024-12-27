@@ -4,8 +4,6 @@ import { LdesFragmentRepository } from './ldes-fragment-repository';
 import { ICreateFragmentOptions, LdesFragmentService } from './ldes-fragment-service';
 import { LdesFragmentController } from "./ldes-fragment-controller";
 import { IResponse, mimeJsonLd, mimeQuads, mimeTriples, mimeTurtle } from './http-interfaces';
-import { RouteGenericInterface } from 'fastify/types/route';
-import { Server, IncomingMessage, ServerResponse } from 'http';
 import { IAlias } from './fragment-interfaces';
 import * as RDF from "@rdfjs/types";
 import { Parser } from 'n3';
@@ -48,7 +46,7 @@ server.addHook('onResponse', (request, reply, done) => {
   done();
 });
 
-function respondWith<T>(reply: FastifyReply<Server, IncomingMessage, ServerResponse, RouteGenericInterface, unknown>, response: IResponse<T>) {
+function respondWith<T>(reply: FastifyReply, response: IResponse<T>) {
   reply.status(response.status).headers(response.headers || {}).send(response.body);
 }
 
@@ -101,7 +99,9 @@ server.addContentTypeParser([mimeTurtle, mimeTriples, mimeQuads], { parseAs: 'st
   }
 })
 
-server.post('/ldes', { schema: { querystring: { seconds: { type: 'number' } } } }, async (request, reply) => {
+const queryStringParams = { type: 'object', properties: { "max-age": { type: 'number', default: false } } };
+
+server.post('/ldes', { schema: { querystring: queryStringParams } }, async (request, reply) => {
   const response = await controller.postFragment({
     body: request.body as RDF.Quad[],
     query: request.query as ICreateFragmentOptions,
